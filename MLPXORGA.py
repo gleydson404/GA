@@ -3,7 +3,7 @@ from operator import itemgetter, add
 from random import random, randint, uniform
 
 inputs = np.array([[-1, 0, 0], [-1, 0, 1], [-1, 1, 0], [-1, 1, 1]])
-RIGHT_ANSWER = [0, 1, 1, 1]
+RIGHT_ANSWER = [0, 1, 1, 0]
 
 
 # w = np.matrix(np.zeros((3, 3)))
@@ -32,19 +32,32 @@ def feed_forward(input, w, z):  # weights should be transpose
 #     print feed_foward(input, w.T, z.T)
 
 
-def fitness_evaluation_individual(individual, right_answer):
+def fitness_evaluation_individual(w, z, right_answer):
     outs = []
     for item in inputs:
-        outs.append(feed_forward(item, individual))
+        outs.append(feed_forward(item, w, z))
 
     out_vec = [np.abs(x - y) for x, y in zip(right_answer, outs)]
+
     return reduce(add, out_vec)
+
+
+def generate_float_individual(lines, columns):
+    individual = np.matrix([np.random.uniform(-20, 20, columns) for quantity in xrange(lines-1)])
+    individual = (individual, np.matrix(np.random.uniform(-20, 20, columns)))
+    return individual
+
+
+def generate_float_population(count, lines, columns):
+    return [generate_float_individual(lines, columns) for item in range(count)]
 
 
 def fitness_evaluation_population(population):
     evaluated_individuals = []
     for individual in population:
-        evaluated_individuals.append((fitness_evaluation_individual(individual, RIGHT_ANSWER), individual))
+        evaluated_individuals.append(
+            (fitness_evaluation_individual(individual[0], individual[1], RIGHT_ANSWER),
+             individual))
 
     return evaluated_individuals
 
@@ -83,5 +96,9 @@ def evolve(population, percent_winners=0.2, random_select=0.05, mutate=0.01):
 
     return selecteds_genes
 
-for input in inputs:
-    print feed_forward(input, W.T, Z.T)
+# for input in inputs:
+#     print feed_forward(input, W.T, Z.T)
+
+# print fitness_evaluation_individual(W.T, Z.T, RIGHT_ANSWER)
+
+print generate_float_individual(3, 3)
