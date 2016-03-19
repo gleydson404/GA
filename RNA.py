@@ -5,6 +5,10 @@ from random import random, randint, uniform
 # weights = np.array([0, 0], [0, 1], [1, 0], [1, 1])
 inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 
+RIGHT_ANSWER = [0, 1, 1, 1]
+POP_LENGTH = 300
+NUMBER_GENERATIONS = 300
+
 
 def evaluate(value):
     if value <= 2:
@@ -18,9 +22,6 @@ def feed_forward(inputs, weights):
     return evaluate(sum)
 
 
-RIGHT_ANSWER = [0, 1, 1, 1]
-POP_LENGTH = 300
-NUMBER_GENERATIONS = 300
 
 
 def generate_float_individual(length):
@@ -88,19 +89,20 @@ def evolve(population, percent_winners=0.2, random_select=0.05, mutate=0.01):
     return selecteds_genes
 
 
-population = generate_float_population(100, 2)
+if __name__ == "__main__":
+    population = generate_float_population(100, 2)
 
-fitness_history = [grade(population, RIGHT_ANSWER)]
-number_generation = 1
-for item in range(NUMBER_GENERATIONS):
+    fitness_history = [grade(population, RIGHT_ANSWER)]
+    number_generation = 1
+    for item in range(NUMBER_GENERATIONS):
 
-    population = evolve(population)
-    fitness_history.append(grade(population, RIGHT_ANSWER))
+        population = evolve(population)
+        fitness_history.append(grade(population, RIGHT_ANSWER))
 
-for datum in fitness_history:
-    print ("Geracao -", number_generation)
-    number_generation += 1
-    print datum
+    for datum in fitness_history:
+        print ("Geracao -", number_generation)
+        number_generation += 1
+        print datum
 
+    print population
 
-print population
