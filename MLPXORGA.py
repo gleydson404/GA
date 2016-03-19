@@ -121,20 +121,20 @@ def evolve(population, percent_winners=0.2, random_select=0.05, mutate=0.01):
 
 # print fitness_evaluation_individual(W.T, Z.T, RIGHT_ANSWER)
 
-# if __name__ == "__main__":
-#     population = generate_float_population(100, 9)
-#
-#     # print population
-#     fitness_history = []
-#     number_generation = 1
-#     for item in range(NUMBER_GENERATIONS):
-#
-#         population = evolve(population)
-#         fitness_history.append(population[0])  # best solution at the moment
-#
-#     for datum in fitness_history:
-#         print ("Geracao -", number_generation)
-#         number_generation += 1
-#         print datum
-#
-#     print population
+if __name__ == "__main__":
+    population = generate_float_population(100, 9)
+
+    # print population
+    fitness_history = []
+    number_generation = 1
+    for item in range(NUMBER_GENERATIONS):
+
+        population = evolve(population)
+        fitness_history.append(population[0])  # best solution at the moment
+
+    for datum in fitness_history:
+        print ("Geracao -", number_generation)
+        number_generation += 1
+        print datum
+
+    print population
