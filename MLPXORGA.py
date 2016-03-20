@@ -110,7 +110,7 @@ if __name__ == "__main__":
     number_generation = 1
     number_generation_vec = []
     mean_fitness = []
-    for item in range(NUMBER_GENERATIONS):
+    for item in xrange(NUMBER_GENERATIONS):
 
         population = evolve(population)
         fitness_history.append(fitness_evaluation_individual(population[0], RIGHT_ANSWER).flat[0])  # best solution at the moment
