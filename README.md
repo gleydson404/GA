@@ -7,6 +7,8 @@ At the end of the execution, this program should to show a graph convertion of t
 If you found something that i can improve, please just send a pull request.
 
 
+The Algorithm contains reproduction, crossover and mutation, as reproduction operators. 
+
 This Algorithm was inpired in this link:
 http://lethain.com/genetic-algorithms-cool-name-damn-simple/
 
