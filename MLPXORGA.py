@@ -24,10 +24,6 @@ def feed_forward(input, w, z):  # weights should be transpose
     return sigmoid(summary_l2)
 
 
-# for input in inputs:
-#     print feed_foward(input, w.T, z.T)
-
-
 def fitness_evaluation_individual(chromosome, right_answer):
     matrix = chromosome.reshape(3, 3)
     w = np.matrix(matrix[:2, :])
@@ -43,14 +39,12 @@ def fitness_evaluation_individual(chromosome, right_answer):
 
 
 def generate_float_individual(size):
-    individual = np.array(np.random.uniform(-20, 20, size))
-    return individual
+    return np.array(np.random.uniform(-20, 20, size))
 
 
 def generate_float_population(count, size):
     # return [generate_float_individual(size) for item in range(count)]
     return map(generate_float_individual, [size] * count)
-    # return [generate_float_individual(size)] * count
 
 
 def fitness_evaluation_population(population):
@@ -97,7 +91,6 @@ def evolve(population, percent_winners=0.2, random_select=0.05, mutate=0.01):
             mother = selecteds_genes[mother]
 
             fst_part_cross = randint(0, size_individual)
-            # scd_part_cross = randint(fst_part_cross, size_individual)
 
             child_1 = np.hstack((father[:fst_part_cross], mother[fst_part_cross:]))
             child_2 = np.hstack((mother[:fst_part_cross], father[fst_part_cross:]))
@@ -113,7 +106,6 @@ def evolve(population, percent_winners=0.2, random_select=0.05, mutate=0.01):
 if __name__ == "__main__":
     population = generate_float_population(100, 9)
 
-    # print population
     fitness_history = []
     number_generation = 1
     number_generation_vec = []
