@@ -1,16 +1,12 @@
 import numpy as np
 from operator import itemgetter, add
 from random import random, randint, uniform
+import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
 
 inputs = np.matrix([[-1, 0, 0], [-1, 0, 1], [-1, 1, 0], [-1, 1, 1]])
 RIGHT_ANSWER = [0, 1, 1, 0]
-NUMBER_GENERATIONS = 300
-
-# w = np.matrix(np.zeros((3, 3)))
-# z = np.matrix(np.zeros((1, 3)))
-
-W = np.matrix([[-9.8050,   -6.0907,   -7.0623], [-2.4839,   -5.3249,   -6.9537]])
-Z = np.matrix([[5.7278,   12.1571,  -12.8941]])
+NUMBER_GENERATIONS = 100
 
 
 def sigmoid(x):
@@ -52,7 +48,9 @@ def generate_float_individual(size):
 
 
 def generate_float_population(count, size):
-    return [generate_float_individual(size) for item in range(count)]
+    # return [generate_float_individual(size) for item in range(count)]
+    return map(generate_float_individual, [size] * count)
+    # return [generate_float_individual(size)] * count
 
 
 def fitness_evaluation_population(population):
@@ -112,29 +110,36 @@ def evolve(population, percent_winners=0.2, random_select=0.05, mutate=0.01):
     return selecteds_genes
 
 
-# chromosome = np.matrix([-3.20601877, -16.79708469, -16.56907027, -15.70006945, -11.85963456, -10.14149513,   4.89624683, -15.4298402 ,  11.32024019])
-# matrix = chromosome.reshape(3, 3)
-# w = np.matrix(matrix[:2, :])
-# z = np.matrix(matrix[2, :])
-# for input in inputs:
-#     print feed_forward(input, W.T, Z.T)
-
-# print fitness_evaluation_individual(W.T, Z.T, RIGHT_ANSWER)
-
 if __name__ == "__main__":
     population = generate_float_population(100, 9)
 
     # print population
     fitness_history = []
     number_generation = 1
+    number_generation_vec = []
+    mean_fitness = []
     for item in range(NUMBER_GENERATIONS):
 
         population = evolve(population)
-        fitness_history.append(population[0])  # best solution at the moment
-
-    for datum in fitness_history:
-        print ("Geracao -", number_generation)
+        fitness_history.append(fitness_evaluation_individual(population[0], RIGHT_ANSWER).flat[0])  # best solution at the moment
+        number_generation_vec.append(number_generation)
+        mean_fitness.append(np.mean([fitness_evaluation_individual(individual, RIGHT_ANSWER) for individual in population]))
         number_generation += 1
-        print datum
 
-    print population
+    plot_lines = []
+    plt.plot(number_generation_vec, fitness_history)
+    plt.plot(number_generation_vec, mean_fitness)
+    blue_line = mlines.Line2D([], [], color='blue')
+    green_line = mlines.Line2D([], [], color='green')
+    plot_lines.append([blue_line, green_line])
+    legend1 = plt.legend(plot_lines[0], ["Best Fitness", "Mean Fitness"], loc=1)
+    plt.gca().add_artist(legend1)
+    plt.xlabel("Generations")
+    plt.title("Genetic Algorithm Gleydson")
+    plt.show()
+
+    print ("Best Solution", population[0])
+
+
+
+
