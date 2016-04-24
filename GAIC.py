@@ -127,3 +127,4 @@ if __name__ == "__main__":
     plt.show()
 
     print ("Best Solution", population[0])
+
