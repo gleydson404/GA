@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import BinarytoReal
 
-NUMBER_GENERATIONS = 1000
+NUMBER_GENERATIONS = 400
 NUMBER_BITS = 12
 NUMBER_DIMENSIONS = 30
 SIZE_POPULATION = 50
@@ -18,6 +18,18 @@ def x_square_30(individual):
 
 def x_square_30x(individual):
     return np.sum([np.abs((x + 0.5) ** 2) for x in individual])
+
+
+def roullete(population):
+    total_fitness =  np.sum(population)
+    random_number = randint(0, total_fitness)
+
+    partial_sum = 0
+
+    for item in reversed(population):
+        partial_sum += item
+        if partial_sum >= random_number:
+            return item
 
 
 def convert_individual_to_real(individual):
