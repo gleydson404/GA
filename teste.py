@@ -14,4 +14,4 @@ w = np.matrix(matrix[:2, :])
 z = np.matrix(matrix[2, :])
 
 for input in inputs:
-    print np.rint(feed_forward(input, w.T, z.T))
+    print ("teste",np.rint(feed_forward(input, w.T, z.T)))

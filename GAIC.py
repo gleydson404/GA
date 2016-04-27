@@ -1,16 +1,19 @@
-import numpy as np
 from operator import itemgetter
-from random import random, randint, uniform
-import matplotlib.pyplot as plt
+from random import random, randint
+
 import matplotlib.lines as mlines
+import matplotlib.pyplot as plt
+import numpy as np
+
 import BinarytoReal
 
 NUMBER_GENERATIONS = 400
 NUMBER_BITS = 12
 NUMBER_DIMENSIONS = 30
-SIZE_POPULATION = 50
+SIZE_POPULATION = 100
 HIGH_LIMIT = 100
 LOW_LIMIT = -100
+MAXIMIZATION = False
 
 
 def x_square_30(individual):
@@ -21,15 +24,36 @@ def x_square_30x(individual):
 
 
 def roullete(population):
-    total_fitness =  np.sum(population)
-    random_number = randint(0, total_fitness)
 
-    partial_sum = 0
+    fitness_list = [individual[0] for individual in population] #population is a list of tuples (fitness, individual), individual[0] brings me just the fitness
 
-    for item in reversed(population):
-        partial_sum += item
-        if partial_sum >= random_number:
-            return item
+    total_fitness = np.sum(fitness_list)
+    max_fitness = max(fitness_list)
+    min_fitness = min(fitness_list)
+    p = random() * total_fitness
+    t = max_fitness + min_fitness
+    choosen = 0
+    for index in xrange(len(population) - 1):
+        if MAXIMIZATION:
+            p -= population[index][0]
+        else:
+            p -= (t - population[index][0])
+        if p < 0:
+            choosen = index
+            break
+
+    return choosen
+
+    # random_number = randint(0, int(total_fitness))
+    #
+    # partial_sum = 0
+    #
+    # for index in xrange(len(fitness_list)):
+    #
+    #     partial_sum += fitness_list[index]
+    #
+    #     if partial_sum >= random_number:
+    #         return index
 
 
 def convert_individual_to_real(individual):
@@ -111,6 +135,53 @@ def evolve(population, percent_winners=0.3, random_select=0.1, mutate=0.3):
     return selecteds_genes
 
 
+def evolve2(population, tx_crossover=1, tx_mutation=0.3, tx_reproduction=0.3):
+    evaluated_individuals = sorted(fitness_evaluation_population(population), key=itemgetter(0))
+
+    new_population = []
+
+    while len(new_population) <= SIZE_POPULATION:
+
+        if tx_mutation > random(): #mutation
+            individual = evaluated_individuals[roullete(evaluated_individuals)] # eu seleciono o inviduo antes de verificar a probabilidade, ou depois ?
+            simple_mutation(individual[1])
+            new_population.append(individual[1])
+
+        if tx_crossover > random():
+
+            father_index = roullete(evaluated_individuals)
+            mother_index = roullete(evaluated_individuals)
+
+            if father_index != mother_index:
+
+                father = evaluated_individuals[father_index]
+                mother = evaluated_individuals[mother_index]
+
+                new_population.extend(one_point_crossover(mother[1], father[1]))
+
+        if tx_reproduction > random():
+            new_population.append(evaluated_individuals[roullete(evaluated_individuals)][1])
+
+    new_population = sorted(fitness_evaluation_population(new_population), key=itemgetter(0))
+
+    return [individual[1] for individual in new_population]  # remove fitness value, leaving just the individual
+
+def one_point_crossover(mother, father):
+    fst_part_cross = randint(0, len(father)-1)
+
+    child_1 = np.append(father[:fst_part_cross], mother[fst_part_cross:], axis=0)
+    child_2 = np.append(mother[:fst_part_cross], father[fst_part_cross:], axis=0)
+
+    return [child_1, child_2]
+
+
+def simple_mutation(individual):
+    pst_to_mutate_crm = randint(0, len(individual)-1)
+    pst_to_mutate_alelo = randint(0, NUMBER_BITS - 1)
+    individual[pst_to_mutate_crm][pst_to_mutate_alelo] = np.random.randint(2, size=1)[0]
+    return individual
+
+
 if __name__ == "__main__":
     population = generate_float_population(SIZE_POPULATION, NUMBER_DIMENSIONS)
 
@@ -120,15 +191,15 @@ if __name__ == "__main__":
     mean_fitness = []
     for item in xrange(NUMBER_GENERATIONS):
 
-        population = evolve(population)
+        population = evolve2(population)
         fitness_history.append(fitness_evaluation_individual(x_square_30, population[0]))  # best solution at the moment
         number_generation_vec.append(number_generation)
-        mean_fitness.append(np.mean([fitness_evaluation_individual(x_square_30, population[0]) for individual in population]))
+        mean_fitness.append(np.mean([fitness_evaluation_individual(x_square_30, individual) for individual in population]))
         number_generation += 1
 
     plot_lines = []
     plt.title("Genetic Algorithm Gleydson")
-    plt.plot(number_generation_vec, fitness_history, marker="*")
+    plt.plot(number_generation_vec, fitness_history)
     plt.plot(number_generation_vec, mean_fitness)
     blue_line = mlines.Line2D([], [], color='blue')
     green_line = mlines.Line2D([], [], color='green')
