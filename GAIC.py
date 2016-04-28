@@ -7,7 +7,7 @@ import numpy as np
 import BinarytoReal
 
 NUMBER_GENERATIONS = 400
-NUMBER_BITS = 12
+NUMBER_BITS = 16
 NUMBER_DIMENSIONS = 30
 SIZE_POPULATION = 100
 HIGH_LIMIT = 100
@@ -15,10 +15,10 @@ LOW_LIMIT = -100
 MAXIMIZATION = False
 
 
-def x_square_30(individual):
+def x_square_30x(individual):
     return np.sum([x ** 2 for x in individual])
 
-def x_square_30x(individual):
+def x_square_30(individual):
     return np.sum([np.abs((x + 0.5) ** 2) for x in individual])
 
 
@@ -65,6 +65,7 @@ def convert_individual_to_real(individual):
             print ("erro", individual)
 
     return converted
+
 
 def fitness_evaluation_individual(fitness_function, individual):
     return fitness_function(convert_individual_to_real(individual))
@@ -156,7 +157,7 @@ def evolve2(population, tx_crossover=1, tx_mutation=0.3, tx_reproduction=0.3):
                 father = evaluated_individuals[father_index]
                 mother = evaluated_individuals[mother_index]
 
-                new_population.extend(one_point_crossover(mother[1], father[1]))
+                new_population.extend(two_points_crossover(mother[1], father[1]))
 
         if tx_reproduction > random():
             new_population.append(evaluated_individuals[roullete(evaluated_individuals)][1])
@@ -165,11 +166,47 @@ def evolve2(population, tx_crossover=1, tx_mutation=0.3, tx_reproduction=0.3):
 
     return [individual[1] for individual in new_population]  # remove fitness value, leaving just the individual
 
+
 def one_point_crossover(mother, father):
     fst_part_cross = randint(0, len(father)-1)
 
     child_1 = np.append(father[:fst_part_cross], mother[fst_part_cross:], axis=0)
     child_2 = np.append(mother[:fst_part_cross], father[fst_part_cross:], axis=0)
+
+    return [child_1, child_2]
+
+
+def two_points_crossover(mother, father):
+    fst_part_cross = randint(0, len(father) - 1)
+    scd_part_cross = randint(fst_part_cross, len(father) - 1)
+
+    # partes do primeiro pai fora dos pontos de corte mais a parte do segundo pai dentro dos pontos de corte
+    part_1_father1 = mother[:fst_part_cross]
+    part_2_father1 = father[fst_part_cross:scd_part_cross]
+    part_3_father1 = mother[scd_part_cross:]
+
+    part_1_father2 = father[:fst_part_cross]
+    part_2_father2 = mother[fst_part_cross:scd_part_cross]
+    part_3_father2 = father[scd_part_cross:]
+
+    child_1 = np.append(part_1_father1, part_3_father1,  axis=0)
+    child_1 = np.append(child_1, part_2_father1, axis=0)
+    child_2 = np.append(part_1_father2, part_3_father2, axis=0)
+    child_2 = np.append(child_2, part_2_father2, axis=0)
+
+    return [child_1, child_2]
+
+
+def uniform_crossover(mother, father):
+    child_1 = []
+    child_2 = []
+    for index in range(len(mother)):
+        if np.random.randint(2, size=1)[0] == 0:
+            child_1.append(mother[index])
+            child_2.append(father[index])
+        else:
+            child_1.append(father[index])
+            child_2.append(mother[index])
 
     return [child_1, child_2]
 
