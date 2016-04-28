@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import BinarytoReal
 
-NUMBER_GENERATIONS = 400
+NUMBER_GENERATIONS = 100
 NUMBER_BITS = 16
 NUMBER_DIMENSIONS = 30
 SIZE_POPULATION = 100
@@ -18,9 +18,22 @@ MAXIMIZATION = False
 def x_square_30x(individual):
     return np.sum([x ** 2 for x in individual])
 
+
 def x_square_30(individual):
     return np.sum([np.abs((x + 0.5) ** 2) for x in individual])
 
+
+def multimodal_min_locais(individual):
+    return np.sum([-x * np.sin(np.sqrt(np.abs(x))) for x in individual ])
+
+
+def rantrigin(individual):
+    x = individual[0]
+    y = individual[1]
+    zx = (x ** 2) - 10 * np.cos(2 * np.pi * x + 10)
+    zy = (y ** 2) - 10 * np.cos(2 * np.pi * y + 10)
+    z = zx + zy
+    return -z
 
 def roullete(population):
 
@@ -143,8 +156,9 @@ def evolve2(population, tx_crossover=1, tx_mutation=0.3, tx_reproduction=0.3):
     while len(new_population) <= SIZE_POPULATION:
 
         if tx_mutation > random(): #mutation
-            individual = evaluated_individuals[roullete(evaluated_individuals)] # eu seleciono o inviduo antes de verificar a probabilidade, ou depois ?
-            simple_mutation(individual[1])
+            # eu seleciono o inviduo antes de verificar a probabilidade, ou depois ?
+            individual = evaluated_individuals[roullete(evaluated_individuals)]
+            thrors_mutation(individual[1])
             new_population.append(individual[1])
 
         if tx_crossover > random():
@@ -215,6 +229,29 @@ def simple_mutation(individual):
     pst_to_mutate_crm = randint(0, len(individual)-1)
     pst_to_mutate_alelo = randint(0, NUMBER_BITS - 1)
     individual[pst_to_mutate_crm][pst_to_mutate_alelo] = np.random.randint(2, size=1)[0]
+    return individual
+
+
+def twors_mutation(individual):
+    random_position_1 = randint(0, len(individual) - 1)
+    random_position_2 = randint(0, len(individual) - 1)
+
+    individual[random_position_1], individual[random_position_2] = \
+        individual[random_position_2], individual[random_position_1]
+    return individual
+
+
+def thrors_mutation(individual):
+
+    random_position_i = randint(0, len(individual) - 1)
+    random_position_j = randint(0, len(individual) - 1)
+    random_position_k = randint(0, len(individual) - 1)
+
+    individual_i_old = individual[random_position_i]
+    individual[random_position_i] = individual[random_position_j]
+    individual[random_position_j] = individual[random_position_k]
+    individual[random_position_k] = individual_i_old
+
     return individual
 
 
