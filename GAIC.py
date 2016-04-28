@@ -4,7 +4,6 @@ from random import random, randint
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
-
 import BinarytoReal
 
 NUMBER_GENERATIONS = 400
@@ -189,22 +188,26 @@ if __name__ == "__main__":
     number_generation = 1
     number_generation_vec = []
     mean_fitness = []
+    st_deviation = []
     for item in xrange(NUMBER_GENERATIONS):
 
         population = evolve2(population)
         fitness_history.append(fitness_evaluation_individual(x_square_30, population[0]))  # best solution at the moment
         number_generation_vec.append(number_generation)
         mean_fitness.append(np.mean([fitness_evaluation_individual(x_square_30, individual) for individual in population]))
+        st_deviation.append(np.std([fitness_evaluation_individual(x_square_30, individual) for individual in population]))
         number_generation += 1
 
     plot_lines = []
     plt.title("Genetic Algorithm Gleydson")
     plt.plot(number_generation_vec, fitness_history)
     plt.plot(number_generation_vec, mean_fitness)
+    plt.plot(number_generation_vec, st_deviation, color="yellow")
     blue_line = mlines.Line2D([], [], color='blue')
     green_line = mlines.Line2D([], [], color='green')
-    plot_lines.append([blue_line, green_line])
-    legend1 = plt.legend(plot_lines[0], ["Best Fitness", "Mean Fitness"], loc=1)
+    yellow_line = mlines.Line2D([], [], color='yellow')
+    plot_lines.append([blue_line, green_line, yellow_line])
+    legend1 = plt.legend(plot_lines[0], ["Best Fitness", "Mean Fitness", "Standart Deviation"], loc=1)
     plt.gca().add_artist(legend1)
     plt.xlabel("Generations")
     plt.show()
