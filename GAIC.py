@@ -4,6 +4,7 @@ from random import random, randint
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
+
 import BinarytoReal
 
 # NUMBER_GENERATIONS = 100
@@ -19,21 +20,21 @@ import BinarytoReal
 FUNCTION = ''
 
 OPERATORS = {
-    'crossover': 'two_points_crossover',
-    'mutation': 'twors_mutation',
+    'crossover': 'one_points_crossover',
+    'mutation': 'simple_mutation',
     'elitism': True,
-    'selection': 'tournament',
-    'number_generations': 1000,
-    'number_bits': 16,
-    'number_dimensions': 30,
+    'selection': 'roullete',
+    'number_generations': 400,
+    'number_bits': 10,
+    'number_dimensions': 2,
     'size_population': 100,
-    'high_limit': 100,
-    'low_limit': -100,
-    'is_maximization': False,
+    'high_limit': 5,
+    'low_limit': -5,
+    'is_maximization': True,
     'tx_crossover': 1,
     'tx_mutation': 0.3,
     'tx_reproduction': 0.3,
-    'function': 'x_square'
+    'function': 'rastrigin'
 }
 
 
@@ -322,14 +323,23 @@ if __name__ == "__main__":
     number_generation_vec = []
     mean_fitness = []
     st_deviation = []
-    for item in xrange(OPERATORS['number_generations']):
+    for index in xrange(OPERATORS['number_generations']):
 
         population = evolve2(population)
+
         fitness_history.append(fitness_evaluation_individual(FUNCTION, population[0]))  # best solution at the moment
-        number_generation_vec.append(number_generation)
+        number_generation_vec.append(index + 1)
         mean_fitness.append(np.mean([fitness_evaluation_individual(FUNCTION, individual) for individual in population]))
         st_deviation.append(np.std([fitness_evaluation_individual(FUNCTION, individual) for individual in population]))
-        number_generation += 1
+
+        if index % 10 == 0:
+            cumulator = 0
+            for inner_index in reversed(xrange(index)):
+                if mean_fitness[index] == mean_fitness[inner_index]:
+                    cumulator += 1
+            if cumulator >= 5:
+                print 'break'
+                break
 
     plot_lines = []
     plt.title("Genetic Algorithm Gleydson")
