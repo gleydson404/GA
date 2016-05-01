@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import BinarytoReal
 
-NUMBER_GENERATIONS = 100
+NUMBER_GENERATIONS = 400
 NUMBER_BITS = 16
 NUMBER_DIMENSIONS = 30
 SIZE_POPULATION = 100
@@ -27,45 +27,45 @@ def multimodal_min_locais(individual):
     return np.sum([-x * np.sin(np.sqrt(np.abs(x))) for x in individual ])
 
 
-def rantrigin(individual):
+def rastrigin(individual):
     x = individual[0]
     y = individual[1]
-    zx = (x ** 2) - 10 * np.cos(2 * np.pi * x + 10)
-    zy = (y ** 2) - 10 * np.cos(2 * np.pi * y + 10)
+    zx = (x ** 2) - 10 * np.cos(2 * np.pi * x) + 10
+    zy = (y ** 2) - 10 * np.cos(2 * np.pi * y) + 10
     z = zx + zy
     return -z
 
+FUNCTION = x_square_30
+
+
 def roullete(population):
-
-    fitness_list = [individual[0] for individual in population] #population is a list of tuples (fitness, individual), individual[0] brings me just the fitness
-
+    # population is a list of tuples (fitness, individual), individual[0] brings me just the fitness
+    fitness_list = [individual[0] for individual in population]
+    fitness_list = [normalization(fitness_element, min(fitness_list), max(fitness_list)) for fitness_element in fitness_list]
     total_fitness = np.sum(fitness_list)
     max_fitness = max(fitness_list)
     min_fitness = min(fitness_list)
+
     p = random() * total_fitness
     t = max_fitness + min_fitness
     choosen = 0
-    for index in xrange(len(population) - 1):
+    for index in xrange(len(fitness_list) - 1):
         if MAXIMIZATION:
-            p -= population[index][0]
+            p -= fitness_list[index]
         else:
-            p -= (t - population[index][0])
+            p -= (t - fitness_list[index])
         if p < 0:
             choosen = index
             break
 
     return choosen
 
-    # random_number = randint(0, int(total_fitness))
-    #
-    # partial_sum = 0
-    #
-    # for index in xrange(len(fitness_list)):
-    #
-    #     partial_sum += fitness_list[index]
-    #
-    #     if partial_sum >= random_number:
-    #         return index
+
+def normalization(value, min, max):
+    old_range = max - min
+    new_min = 1
+    new_range = 10 + 0.9999999999 - new_min
+    return float((value - min) / float(old_range * new_range + new_min))
 
 
 def convert_individual_to_real(individual):
@@ -96,13 +96,16 @@ def generate_float_population(count, size):
 def fitness_evaluation_population(population):
     evaluated_individuals = []
     for individual in population:
-        evaluated_individuals.append((fitness_evaluation_individual(x_square_30, individual), individual))
+        evaluated_individuals.append((fitness_evaluation_individual(FUNCTION, individual), individual))
 
     return evaluated_individuals
 
 
 def evolve(population, percent_winners=0.3, random_select=0.1, mutate=0.3):
-    evaluated_individuals = sorted(fitness_evaluation_population(population), key=itemgetter(0))
+    if MAXIMIZATION:
+        evaluated_individuals = sorted(fitness_evaluation_population(population), key=itemgetter(0), reverse=True)
+    else:
+        evaluated_individuals = sorted(fitness_evaluation_population(population), key=itemgetter(0), reverse=False)
 
     selecteds = [x[1] for x in evaluated_individuals]  # remove fitness value, leaving just the individual
 
@@ -149,7 +152,10 @@ def evolve(population, percent_winners=0.3, random_select=0.1, mutate=0.3):
 
 
 def evolve2(population, tx_crossover=1, tx_mutation=0.3, tx_reproduction=0.3):
-    evaluated_individuals = sorted(fitness_evaluation_population(population), key=itemgetter(0))
+    if MAXIMIZATION:
+        evaluated_individuals = sorted(fitness_evaluation_population(population), key=itemgetter(0), reverse=True)
+    else:
+        evaluated_individuals = sorted(fitness_evaluation_population(population), key=itemgetter(0), reverse=False)
 
     new_population = []
 
@@ -158,8 +164,7 @@ def evolve2(population, tx_crossover=1, tx_mutation=0.3, tx_reproduction=0.3):
         if tx_mutation > random(): #mutation
             # eu seleciono o inviduo antes de verificar a probabilidade, ou depois ?
             individual = evaluated_individuals[roullete(evaluated_individuals)]
-            thrors_mutation(individual[1])
-            new_population.append(individual[1])
+            new_population.append(twors_mutation(individual[1]))
 
         if tx_crossover > random():
 
@@ -176,7 +181,10 @@ def evolve2(population, tx_crossover=1, tx_mutation=0.3, tx_reproduction=0.3):
         if tx_reproduction > random():
             new_population.append(evaluated_individuals[roullete(evaluated_individuals)][1])
 
-    new_population = sorted(fitness_evaluation_population(new_population), key=itemgetter(0))
+    if MAXIMIZATION:
+        new_population = sorted(fitness_evaluation_population(new_population), key=itemgetter(0), reverse=True)
+    else:
+        new_population = sorted(fitness_evaluation_population(new_population), key=itemgetter(0), reverse=False)
 
     return [individual[1] for individual in new_population]  # remove fitness value, leaving just the individual
 
@@ -266,16 +274,16 @@ if __name__ == "__main__":
     for item in xrange(NUMBER_GENERATIONS):
 
         population = evolve2(population)
-        fitness_history.append(fitness_evaluation_individual(x_square_30, population[0]))  # best solution at the moment
+        fitness_history.append(fitness_evaluation_individual(FUNCTION, population[0]))  # best solution at the moment
         number_generation_vec.append(number_generation)
-        mean_fitness.append(np.mean([fitness_evaluation_individual(x_square_30, individual) for individual in population]))
-        st_deviation.append(np.std([fitness_evaluation_individual(x_square_30, individual) for individual in population]))
+        mean_fitness.append(np.mean([fitness_evaluation_individual(FUNCTION, individual) for individual in population]))
+        st_deviation.append(np.std([fitness_evaluation_individual(FUNCTION, individual) for individual in population]))
         number_generation += 1
 
     plot_lines = []
     plt.title("Genetic Algorithm Gleydson")
-    plt.plot(number_generation_vec, fitness_history)
-    plt.plot(number_generation_vec, mean_fitness)
+    plt.plot(number_generation_vec, fitness_history, marker="o")
+    plt.plot(number_generation_vec, mean_fitness, marker='8')
     plt.plot(number_generation_vec, st_deviation, color="yellow")
     blue_line = mlines.Line2D([], [], color='blue')
     green_line = mlines.Line2D([], [], color='green')
@@ -286,5 +294,5 @@ if __name__ == "__main__":
     plt.xlabel("Generations")
     plt.show()
 
-    print ("Best Solution", population[0])
-
+    print ("Best Solution", convert_individual_to_real(population[0]))
+    print ("Best Solution in the function", (fitness_evaluation_individual(FUNCTION, population[0])))
