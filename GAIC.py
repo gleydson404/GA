@@ -23,11 +23,11 @@ OPERATORS = {
     'crossover': 'two_points_crossover',
     'mutation': 'simple_mutation',
     'elitism': True,
-    'tx_elitism': 0.3,
-    'selection': 'tournament',
+    'tx_elitism': 0.2,
+    'selection': 'roullete',
     'k_tournament': 4,
-    'number_generations': 1000,
-    'number_bits': 400,
+    'number_generations': 400,
+    'number_bits': 10,
     'number_dimensions': 30,
     'size_population': 100,
     'high_limit': 100,
@@ -36,7 +36,7 @@ OPERATORS = {
     'tx_crossover': 1,
     'tx_mutation': 0.1,
     'tx_reproduction': 0.1,
-    'function': 'x_square'
+    'function': 'x_square_plus_0dot5'
 }
 
 
