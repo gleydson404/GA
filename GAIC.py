@@ -20,21 +20,23 @@ import BinarytoReal
 FUNCTION = ''
 
 OPERATORS = {
-    'crossover': 'one_points_crossover',
+    'crossover': 'two_points_crossover',
     'mutation': 'simple_mutation',
     'elitism': True,
-    'selection': 'roullete',
-    'number_generations': 400,
-    'number_bits': 10,
-    'number_dimensions': 2,
+    'tx_elitism': 0.3,
+    'selection': 'tournament',
+    'k_tournament': 4,
+    'number_generations': 1000,
+    'number_bits': 400,
+    'number_dimensions': 30,
     'size_population': 100,
-    'high_limit': 5,
-    'low_limit': -5,
-    'is_maximization': True,
+    'high_limit': 100,
+    'low_limit': -100,
+    'is_maximization': False,
     'tx_crossover': 1,
-    'tx_mutation': 0.3,
-    'tx_reproduction': 0.3,
-    'function': 'rastrigin'
+    'tx_mutation': 0.1,
+    'tx_reproduction': 0.1,
+    'function': 'x_square'
 }
 
 
@@ -61,26 +63,36 @@ def rastrigin(individual):
     return -z
 
 
-def setup_funcion(name_function, FUNCTION):
+def setup_funcion(name_function):
     if name_function == 'x_square':
-        FUNCTION = x_square
+        return x_square
     elif name_function == 'x_square_plus_0dot5':
-        FUNCTION = x_square_plus_0dot5
+        return x_square_plus_0dot5
     elif name_function == 'multimodal_min_locals':
-        FUNCTION = multimodal_min_locals
+        return multimodal_min_locals
     elif name_function == 'rastrigin':
-        FUNCTION = rastrigin
+        return rastrigin
 
-    return FUNCTION
 
-def tournament(population):
-    pass
+def tournament(population, k=OPERATORS['k_tournament']):
+    selecteds = []
+    for _ in range(k):
+        index = randint(0, len(population) - 1)
+        selecteds.append((population[index][0], index))
+
+    if OPERATORS['is_maximization']:
+        return max(selecteds, key=itemgetter(0))[1]
+    else:
+        return min(selecteds, key=itemgetter(0))[1]
 
 
 def roullete(population):
     # population is a list of tuples (fitness, individual), individual[0] brings me just the fitness
     fitness_list = [individual[0] for individual in population]
-    fitness_list = [normalization(fitness_element, min(fitness_list), max(fitness_list)) for fitness_element in fitness_list]
+    if OPERATORS['is_maximization']:
+        fitness_list = [normalization(fitness_element, min(fitness_list), max(fitness_list)) for fitness_element in
+                        fitness_list]
+
     total_fitness = np.sum(fitness_list)
     max_fitness = max(fitness_list)
     min_fitness = min(fitness_list)
@@ -103,7 +115,7 @@ def roullete(population):
 def normalization(value, min, max):
     old_range = max - min
     new_min = 1
-    new_range = 10 + 0.9999999999 - new_min
+    new_range = 10000 + 0.9999999999 - new_min
     return float((value - min) / float(old_range * new_range + new_min))
 
 
@@ -201,7 +213,11 @@ def evolve2(population, tx_crossover=OPERATORS['tx_crossover'], tx_mutation=OPER
         while len(new_population) <= OPERATORS['size_population']:
 
             if tx_mutation > random(): #mutation
-                individual = evaluated_individuals[roullete(evaluated_individuals)]
+                if OPERATORS['selection'] == 'roullete':
+                    individual = evaluated_individuals[roullete(evaluated_individuals)]
+                elif OPERATORS['selection'] == 'tournament':
+                    individual = evaluated_individuals[tournament(evaluated_individuals)]
+
                 if operators['mutation'] == 'twors_mutation':
                     new_population.append(twors_mutation(individual[1]))
                 elif operators['mutation'] == 'thrors_mutation':
@@ -210,9 +226,13 @@ def evolve2(population, tx_crossover=OPERATORS['tx_crossover'], tx_mutation=OPER
                     new_population.append(simple_mutation(individual[1]))
 
             if tx_crossover > random():
+                if OPERATORS['selection'] == 'roullete':
+                    father_index = roullete(evaluated_individuals)
+                    mother_index = roullete(evaluated_individuals)
 
-                father_index = roullete(evaluated_individuals)
-                mother_index = roullete(evaluated_individuals)
+                elif OPERATORS['selection'] == 'tournament':
+                    father_index = tournament(evaluated_individuals)
+                    mother_index = tournament(evaluated_individuals)
 
                 if father_index != mother_index:
 
@@ -226,9 +246,15 @@ def evolve2(population, tx_crossover=OPERATORS['tx_crossover'], tx_mutation=OPER
                     elif operators['crossover'] == 'uniform_crossover':
                         new_population.extend(uniform_crossover(mother[1], father[1]))
 
-            if operators['elitism']:
-                if tx_reproduction > random():
+            if tx_reproduction > random():
+                if OPERATORS['selection'] == 'roullete':
                     new_population.append(evaluated_individuals[roullete(evaluated_individuals)][1])
+                elif OPERATORS['selection'] == 'tournament':
+                    new_population.append(evaluated_individuals[tournament(evaluated_individuals)][1])
+
+            if OPERATORS['elitism']:
+                range_elistism = int(OPERATORS['tx_elitism'] * 100)
+                new_population.extend([evaluated_individuals[index][1] for index in xrange(range_elistism)])
 
         if OPERATORS['is_maximization']:
             new_population = sorted(fitness_evaluation_population(new_population), key=itemgetter(0), reverse=True)
@@ -315,7 +341,7 @@ def thrors_mutation(individual):
 
 
 if __name__ == "__main__":
-    FUNCTION = setup_funcion(OPERATORS['function'], FUNCTION)
+    FUNCTION = setup_funcion(OPERATORS['function'])
     population = generate_float_population(OPERATORS['size_population'], OPERATORS['number_dimensions'])
 
     fitness_history = []
@@ -332,14 +358,14 @@ if __name__ == "__main__":
         mean_fitness.append(np.mean([fitness_evaluation_individual(FUNCTION, individual) for individual in population]))
         st_deviation.append(np.std([fitness_evaluation_individual(FUNCTION, individual) for individual in population]))
 
-        if index % 10 == 0:
-            cumulator = 0
-            for inner_index in reversed(xrange(index)):
-                if mean_fitness[index] == mean_fitness[inner_index]:
-                    cumulator += 1
-            if cumulator >= 5:
-                print 'break'
-                break
+        # if index % 100 == 0:
+        #     cumulator = 0
+        #     for inner_index in reversed(xrange(index)):
+        #         if mean_fitness[index] == mean_fitness[inner_index]:
+        #             cumulator += 1
+        #     if cumulator >= 5:
+        #         print 'break'
+        #         break
 
     plot_lines = []
     plt.title("Genetic Algorithm Gleydson")
